@@ -1,0 +1,15 @@
+defaults:
+  - paths
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+  - _self_
+
+
+hydra:
+  run:
+    dir: ${paths.log_path}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job_logging:
+    handlers:
+      file:
+        filename:
+          ${paths.log_path}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${hydra.job.name}.log

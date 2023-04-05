@@ -1,0 +1,4 @@
+hydra-core
+hydra-colorlog
+
+pytest
