@@ -4,5 +4,7 @@ hydra-colorlog
 pytest
 
 torch
+transformers
+
 torchtext
 portalocker

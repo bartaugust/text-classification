@@ -1,0 +1,3 @@
+# @package data_loading
+
+batch_size: 32

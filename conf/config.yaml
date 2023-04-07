@@ -1,8 +1,9 @@
 defaults:
   - paths
   - logging
-  - dataset:
-      imdb
+  - data_loading
+  - dataset: imdb
+  - model: bert
   - _self_
 
 hydra:
@@ -11,3 +12,4 @@ hydra:
   sweeper:
     params:
       dataset: glob(*)
+      model: glob(*)

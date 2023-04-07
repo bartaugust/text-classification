@@ -1,7 +1,11 @@
 # @package dataset
 name:
   imdb
-load:
+load_train:
   _target_: torchtext.datasets.IMDB
   root: ${paths.datasets}
   split: train
+load_test:
+  _target_: torchtext.datasets.IMDB
+  root: ${paths.datasets}
+  split: test
