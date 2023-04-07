@@ -1,5 +1,13 @@
 defaults:
   - paths
-  - override hydra/job_logging: colorlog
-  - override hydra/hydra_logging: colorlog
+  - logging
+  - dataset:
+      imdb
   - _self_
+
+hydra:
+  mode:
+    MULTIRUN
+  sweeper:
+    params:
+      dataset: glob(*)
