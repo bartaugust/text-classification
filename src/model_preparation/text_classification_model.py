@@ -3,6 +3,8 @@ from hydra.utils import instantiate
 import torch
 from torch import nn
 
+from tqdm import trange,tqdm
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,32 +30,44 @@ class TextClassificationModel(nn.Module):
 class TextClassification:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.model = TextClassificationModel(cfg)
-            # instantiate(cfg.model.load)
 
         self.cuda_available = torch.cuda.is_available()
         self.device = torch.device('cuda' if self.cuda_available else 'cpu')
 
+        self.model = TextClassificationModel(cfg).to(self.device)
+            # instantiate(cfg.model.load)
+
+
+
         self.criterion = instantiate(self.cfg.model.params.loss)
         self.optimizer = instantiate(self.cfg.model.params.optimizer, self.model.parameters())
+
+        self.compiled_model = torch.compile(self.model)
 
         # self.tokenizer = instantiate(cfg.tokenizer.load)
 
     def train(self, train_loader):
+        logger.info(f'started training on {self.device}')
         for epoch in range(self.cfg.model.params.epochs):
-            logger.info('started training')
-            for batch in train_loader:
-                tokenizer = instantiate(self.cfg.tokenizer.load)
+            logger.info(f'epoch: {epoch}/{self.cfg.model.params.epochs}')
+            with tqdm(train_loader, unit="batch", total=len(list(train_loader))) as tepoch:
+                for batch in tepoch:
+                    tepoch.set_description(f"Epoch {epoch}")
+                    tokenizer = instantiate(self.cfg.tokenizer.load)
 
-                tokenized = tokenizer(batch[1], padding=True, truncation=True, max_length=512, return_tensors='pt')
-                input_ids = tokenized['input_ids'].to(self.device)
-                attention_mask = tokenized['attention_mask'].to(self.device)
-                labels = batch[0].to(self.device)
+                    tokenized = tokenizer(batch[1], padding=True, truncation=True, max_length=512, return_tensors='pt').to(self.device)
+                    input_ids = tokenized['input_ids'].to(self.device)
+                    attention_mask = tokenized['attention_mask'].to(self.device)
+                    labels = batch[0].to(self.device)
 
-                self.optimizer.zero_grad()
+                    self.optimizer.zero_grad()
 
-                outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
-                loss = self.criterion(outputs, labels)
+                    outputs = self.compiled_model(input_ids=input_ids, attention_mask=attention_mask).to(self.device)
+                    predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
+                    loss = self.criterion(outputs, labels).to(self.device)
+                    correct = (predictions == labels).sum().item()
+                    accuracy = correct / self.cfg.data_loading.batch_size
 
-                loss.backward()
-                self.optimizer.step()
+                    loss.backward()
+                    self.optimizer.step()
+                    tepoch.set_postfix(loss=loss.item(), accuracy=100. * accuracy)

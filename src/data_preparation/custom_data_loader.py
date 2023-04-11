@@ -27,7 +27,10 @@ class CustomDataLoader:
     def create_dataloader(self):
         return torch.utils.data.DataLoader(self.dataset,
                                            batch_size=self.cfg.data_loading.batch_size,
+                                           num_workers=1,
                                            shuffle=True,
+                                           pin_memory=True,
+                                           drop_last=True,
                                            )
 
     def split_val(self):
