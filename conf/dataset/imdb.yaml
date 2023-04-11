@@ -1,11 +1,21 @@
 # @package dataset
 name:
   imdb
-load_train:
-  _target_: torchtext.datasets.IMDB
-  root: ${paths.datasets}
-  split: train
-load_test:
-  _target_: torchtext.datasets.IMDB
-  root: ${paths.datasets}
-  split: test
+
+load:
+  train:
+    _target_: torchtext.datasets.IMDB
+    root: ${paths.datasets}
+    split: train
+  test:
+    _target_: torchtext.datasets.IMDB
+    root: ${paths.datasets}
+    split: test
+
+split:
+  _target_: dataset_split
+  val_split: 0.2
+
+classes:
+  2
+

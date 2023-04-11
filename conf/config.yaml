@@ -4,6 +4,7 @@ defaults:
   - data_loading
   - dataset: imdb
   - model: bert
+  - tokenizer: bert-tokenizer
   - _self_
 
 hydra:
@@ -11,5 +12,7 @@ hydra:
     MULTIRUN
   sweeper:
     params:
-      dataset: glob(*)
+      dataset: imdb
+#      glob(*)
       model: glob(*)
+      tokenizer: glob(*)

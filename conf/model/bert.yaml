@@ -8,3 +8,15 @@ load:
   pretrained_model_name_or_path:
     bert-base-uncased
 
+
+params:
+  loss:
+    _target_:
+      torch.nn.CrossEntropyLoss
+  optimizer:
+    _target_:
+      torch.optim.Adam
+    lr:
+      2e-5
+  epochs:
+    5

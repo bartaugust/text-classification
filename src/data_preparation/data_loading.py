@@ -6,7 +6,16 @@ import torch
 
 import logging
 
+from src.data_preparation.custom_data_loader import CustomDataLoader
+
 logger = logging.getLogger(__name__)
+
+
+def dataset_split(dataset, val_split):
+    # TODO: add  split
+    val_dataset = dataset
+    return dataset, val_dataset
+
 
 
 # @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
@@ -22,14 +31,18 @@ logger = logging.getLogger(__name__)
 @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
 def load_data(cfg: DictConfig):
     try:
-        train_dataset = instantiate(cfg.dataset.load_train)
-        test_dataset = instantiate(cfg.dataset.load_test)
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.data_loading.batch_size, shuffle=True)
-        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.data_loading.batch_size, shuffle=False)
-        logger.info(f'Loaded {cfg.dataset.name}')
-        return train_loader, test_loader
+        # train_dataset, test_dataset = load_all_datasets(cfg)
+        train_loader = CustomDataLoader(cfg, 'train')
+        if 'val' in cfg.dataset.load.keys():
+            val_loader = CustomDataLoader(cfg, 'val')
+        else:
+            val_loader = train_loader.split_val()
+        test_loader = CustomDataLoader(cfg, 'test')
+
+        logger.info(f'Loaded dataset: {cfg.dataset.name}')
+        return train_loader, val_loader, test_loader
     except Exception as e:
-        logger.exception(f'Couldn\'t load {cfg.dataset.name}')
+        logger.exception(f'Couldn\'t load dataset: {cfg.dataset.name}')
         raise e
 
 
