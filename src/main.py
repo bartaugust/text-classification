@@ -5,6 +5,8 @@ from src.data_preparation.data_loading import load_data
 from src.model_preparation.model_loading import load_model
 import logging
 
+import torch
+
 logger = logging.getLogger(__name__)
 
 
