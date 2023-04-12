@@ -5,6 +5,7 @@ pytest
 
 torch
 transformers
+lightning
 
 torchtext
 portalocker
