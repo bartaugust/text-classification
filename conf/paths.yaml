@@ -1,5 +1,5 @@
 # @package paths
 
-main_path: C:\Users\bartosz.augustyniak\PycharmProjects\PJN
-log_path: ${paths.main_path}\logs
-datasets: ${paths.main_path}\datasets
+main_path: /home/trabor/PycharmProjects/PJN
+log_path: ${paths.main_path}/logs
+datasets: ${paths.main_path}/datasets
