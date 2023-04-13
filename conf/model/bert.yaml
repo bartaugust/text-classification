@@ -1,5 +1,7 @@
 # @package model
-
+defaults:
+  - model_settings:
+      fabric
 name:
   bert
 load:
@@ -19,4 +21,4 @@ params:
     lr:
       2e-5
   epochs:
-    5
+    1

@@ -7,7 +7,7 @@ import logging
 
 import torch
 
-torch.cuda.empty_cache()
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ torch.set_float32_matmul_precision('high')
 def main(cfg: DictConfig):
     data = load_data(cfg)
     model = load_model(cfg)
-    model.train(data[0].dataloader)
+    model.fit(data[0].dataloader)
     logger.info('aa')
 
 

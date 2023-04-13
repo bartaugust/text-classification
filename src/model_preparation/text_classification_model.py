@@ -1,3 +1,5 @@
+from typing import Any, cast, Iterable, List, Literal, Optional, Tuple, Union
+
 from hydra.utils import instantiate
 
 import torch
@@ -30,12 +32,12 @@ class TextClassificationModel(nn.Module):
 
 class TextClassification:
     def __init__(self, cfg):
+        torch.cuda.empty_cache()
         self.cfg = cfg
 
         # self.cuda_available = torch.cuda.is_available()
         # self.device = torch.device('cuda' if self.cuda_available else 'cpu')
-        self.fabric = L.Fabric(accelerator="cuda")
-        self.fabric.launch()
+        self.fabric = L.Fabric(**self.cfg.model.fabric)
 
         self.model = TextClassificationModel(cfg)
 
@@ -48,34 +50,67 @@ class TextClassification:
 
         self.compiled_model = torch.compile(self.model)
 
+        self.current_epoch = 0
         # self.tokenizer = instantiate(cfg.tokenizer.load)
 
-    def train(self, train_loader):
+    def fit(self,
+            train_loader: torch.utils.data.DataLoader,
+            val_loader: torch.utils.data.DataLoader = None,
+            ):
+        self.fabric.launch()
+
         train_loader = self.fabric.setup_dataloaders(train_loader)
+        if val_loader is not None:
+            val_loader = self.fabric.setup_dataloaders(val_loader)
+
         logger.info(f'started training on {self.fabric.device}')
+
         for epoch in range(self.cfg.model.params.epochs):
-            logger.info(f'epoch: {epoch+1}/{self.cfg.model.params.epochs}')
-            with tqdm(train_loader, unit="batch", total=len(list(train_loader))) as tepoch:
-                for batch in tepoch:
-                    tepoch.set_description(f"Epoch {epoch+1}")
-                    tokenizer = instantiate(self.cfg.tokenizer.load)
+            logger.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
+            self.train_loop(train_loader)
 
-                    tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
+    def train_loop(self, train_loader):
+        self.fabric.call("on_train_epoch_start")
+        loader_len = len(list(train_loader))
+        loader = self.progbar_wrapper(
+            train_loader, total=loader_len, desc=f"Epoch {self.current_epoch}"
+        )
+        for batch_idx, batch in enumerate(loader):
+            self.fabric.call("on_train_batch_start", batch, batch_idx)
 
-                    input_ids = tokenized['input_ids'].to(self.fabric.device)
-                    attention_mask = tokenized['attention_mask'].to(self.fabric.device)
-                    labels = batch[0]-1
+            tokenizer = instantiate(self.cfg.tokenizer.load)
 
-                    self.optimizer.zero_grad()
+            tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
 
-                    outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
-                    predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
-                    loss = self.criterion(outputs, labels)
+            input_ids = tokenized['input_ids'].to(self.fabric.device)
+            attention_mask = tokenized['attention_mask'].to(self.fabric.device)
+            labels = batch[0] - 1
 
-                    correct = (predictions == labels).sum().item()
-                    accuracy = correct / self.cfg.data_loading.batch_size
+            self.fabric.call("on_before_zero_grad", self.optimizer)
+            self.optimizer.zero_grad()
 
-                    # loss.backward()
-                    self.fabric.backward(loss)
-                    self.optimizer.step()
-                    tepoch.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
+            outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+            predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
+            loss = self.criterion(outputs, labels)
+
+            correct = (predictions == labels).sum().item()
+            accuracy = correct / self.cfg.data_loading.batch_size
+
+            # loss.backward()
+            self.fabric.backward(loss)
+            self.optimizer.step()
+
+            loader.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
+
+        self.fabric.call("on_train_epoch_end")
+
+    def progbar_wrapper(self, iterable: Iterable, total: int, **kwargs: Any):
+        """Wraps the iterable with tqdm for global rank zero.
+
+        Args:
+            iterable: the iterable to wrap with tqdm
+            total: the total length of the iterable, necessary in case the number of batches was limited.
+        """
+        if self.fabric.is_global_zero:
+            return tqdm(iterable, total=total, **kwargs)
+        return iterable

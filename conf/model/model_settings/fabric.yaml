@@ -1,0 +1,5 @@
+# @package model.fabric
+accelerator:
+  cuda
+precision:
+  16-mixed
