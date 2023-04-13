@@ -7,6 +7,8 @@ import logging
 
 import torch
 
+torch.cuda.empty_cache()
+
 logger = logging.getLogger(__name__)
 
 torch.set_float32_matmul_precision('high')

@@ -10,7 +10,7 @@ load:
 
 params:
   padding:
-    True
+    'max_length'
   truncation:
     True
   max_length:

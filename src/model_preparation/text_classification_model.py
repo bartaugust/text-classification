@@ -54,28 +54,25 @@ class TextClassification:
         train_loader = self.fabric.setup_dataloaders(train_loader)
         logger.info(f'started training on {self.fabric.device}')
         for epoch in range(self.cfg.model.params.epochs):
-            logger.info(f'epoch: {epoch}/{self.cfg.model.params.epochs}')
+            logger.info(f'epoch: {epoch+1}/{self.cfg.model.params.epochs}')
             with tqdm(train_loader, unit="batch", total=len(list(train_loader))) as tepoch:
                 for batch in tepoch:
-                    tepoch.set_description(f"Epoch {epoch}")
+                    tepoch.set_description(f"Epoch {epoch+1}")
                     tokenizer = instantiate(self.cfg.tokenizer.load)
 
                     tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
 
                     input_ids = tokenized['input_ids'].to(self.fabric.device)
                     attention_mask = tokenized['attention_mask'].to(self.fabric.device)
-                    labels = batch[0]
+                    labels = batch[0]-1
 
                     self.optimizer.zero_grad()
 
                     outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
                     predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
                     loss = self.criterion(outputs, labels)
-                    logger.info('----')
-                    logger.info(predictions)
-                    logger.info(labels)
+
                     correct = (predictions == labels).sum().item()
-                    logger.info(correct)
                     accuracy = correct / self.cfg.data_loading.batch_size
 
                     # loss.backward()
