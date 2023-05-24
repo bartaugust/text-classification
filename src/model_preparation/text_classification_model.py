@@ -13,7 +13,7 @@ import lightning as L
 logger = logging.getLogger(__name__)
 
 
-class TextClassificationModel(nn.Module):
+class TextClassificationModel(L.LightningModule):
     def __init__(self, cfg):
         super().__init__()
         self.base_model = instantiate(cfg.model.load)
@@ -48,7 +48,7 @@ class TextClassification:
 
         self.model, self.optimizer, self.criterion = self.fabric.setup(self.model, self.optimizer, self.criterion)
 
-        self.compiled_model = torch.compile(self.model)
+        # self.compiled_model = torch.compile(self.model)
 
         self.current_epoch = 0
         # self.tokenizer = instantiate(cfg.tokenizer.load)
@@ -78,13 +78,15 @@ class TextClassification:
         for batch_idx, batch in enumerate(loader):
             self.fabric.call("on_train_batch_start", batch, batch_idx)
 
-            tokenizer = instantiate(self.cfg.tokenizer.load)
+            # tokenizer = instantiate(self.cfg.tokenizer.load)
 
-            tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
+            # tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
 
-            input_ids = tokenized['input_ids'].to(self.fabric.device)
-            attention_mask = tokenized['attention_mask'].to(self.fabric.device)
-            labels = batch[0] - 1
+            # input_ids = tokenized['input_ids'].to(self.fabric.device)
+            # attention_mask = tokenized['attention_mask'].to(self.fabric.device)
+            input_ids = batch['input_ids'].to(self.fabric.device)
+            attention_mask = batch['attention_mask'].to(self.fabric.device)
+            labels = batch['label']
 
             self.fabric.call("on_before_zero_grad", self.optimizer)
             self.optimizer.zero_grad()

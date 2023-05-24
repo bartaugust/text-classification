@@ -21,6 +21,7 @@ def load_model(cfg: DictConfig):
     try:
         model = TextClassification(cfg)
         logger.info(f'Loaded model: {cfg.model.name}')
+
         return model
     except Exception as e:
         logger.exception(f'Couldn\'t load model: {cfg.model.name}')

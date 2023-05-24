@@ -22,3 +22,6 @@ params:
       2e-5
   epochs:
     1
+
+trained_path:
+  null
