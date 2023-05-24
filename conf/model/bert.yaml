@@ -1,7 +1,4 @@
 # @package model
-defaults:
-  - model_settings:
-      fabric
 name:
   bert
 load:

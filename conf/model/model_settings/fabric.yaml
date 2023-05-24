@@ -1,5 +1,0 @@
-# @package model.fabric
-accelerator:
-  cpu
-#precision:
-#  16-mixed

@@ -21,20 +21,22 @@ class CustomDataLoader:
             all_lists = {
                 'input_ids': [],
                 'attention_mask': [],
-                'token_type_ids':[],
-                'labels': []
+                # 'token_type_ids':[],
+                'label': []
             }
 
             for elem in batch:
-                all_lists['labels'].append(elem[0] - 1)
+                all_lists['label'].append(elem[0] - 1)
 
                 tokenized = self.tokenizer(elem[1], **self.cfg.tokenizer.params)
                 all_lists['attention_mask'].append(tokenized['attention_mask'])
                 all_lists['input_ids'].append(tokenized['input_ids'])
-                all_lists['token_type_ids'].append(tokenized['token_type_ids'])
+                # all_lists['token_type_ids'].append(tokenized['token_type_ids'])
 
-                # all_lists['input_ids'] =
-
+            all_lists['attention_mask'] = torch.stack(all_lists['attention_mask'] ).squeeze()
+            all_lists['input_ids'] = torch.stack(all_lists['input_ids']).squeeze()
+            # all_lists['token_type_ids'] = torch.stack(all_lists['token_type_ids']).squeeze()
+            all_lists['label'] = torch.Tensor(all_lists['label']).type(torch.LongTensor)
             return all_lists
 
         return torch.utils.data.DataLoader(self.dataset,

@@ -2,6 +2,7 @@ defaults:
   - paths
   - logging
   - data_loading
+  - trainer: trainer
   - dataset: imdb
   - model: bert
   - tokenizer: bert-tokenizer
