@@ -1,0 +1,6 @@
+# @package trainer
+fabric:
+  accelerator:
+    cuda
+  precision:
+    16-mixed

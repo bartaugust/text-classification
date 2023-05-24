@@ -1,5 +1,4 @@
 # @package model
-
 name:
   bert
 load:
@@ -19,4 +18,7 @@ params:
     lr:
       2e-5
   epochs:
-    5
+    1
+
+trained_path:
+  null
