@@ -17,3 +17,6 @@ hydra:
 #      glob(*)
       model: glob(*)
       tokenizer: glob(*)
+
+version:
+  1.0.0
