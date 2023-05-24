@@ -13,10 +13,9 @@ hydra:
     MULTIRUN
   sweeper:
     params:
-      dataset: imdb
-#      glob(*)
+      dataset: glob(*)
       model: glob(*)
       tokenizer: glob(*)
 
 version:
-  1.0.0
+  1.0.1
