@@ -88,7 +88,7 @@ class Trainer:
 
             correct = (predictions == labels).sum().item()
             accuracy = correct / self.cfg.data_loading.batch_size
-            logs = {"loss": loss, "acc": accuracy}
+            logs = {"loss": loss, "accuracy": accuracy}
             self.fabric.log_dict(logs,step=batch_idx)
             # loss.backward()
             self.fabric.backward(loss)
