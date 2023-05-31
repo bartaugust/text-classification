@@ -10,8 +10,8 @@ hydra:
     dir: ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}
   sweep:
     dir: ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}
-  job_logging:
-    handlers:
-      file:
-        filename:
-          ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${hydra.job.num}/${hydra.job.name}.log
+#  job_logging:
+#    handlers:
+#      file:
+#        filename:
+#          ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${hydra.job.num}/${hydra.job.name}.log

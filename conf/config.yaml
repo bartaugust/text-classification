@@ -10,7 +10,7 @@ defaults:
 
 hydra:
   mode:
-    MULTIRUN
+    RUN
   sweeper:
     params:
       dataset: glob(*)
