@@ -3,7 +3,7 @@ name:
   MiniLM
 load:
   _target_:
-    transformers.AutoModel.from_pretrained
+    transformers.AutoModelForSequenceClassification.from_pretrained
   pretrained_model_name_or_path:
     sentence-transformers/all-MiniLM-L6-v2
 
@@ -18,7 +18,8 @@ params:
     lr:
       2e-5
   epochs:
-    1
-
+    5
+last:
+  logits
 trained_path:
   ${paths.main_path}/saved_models/21-47-39.ckpt

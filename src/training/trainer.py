@@ -16,6 +16,7 @@ from lightning_utilities import apply_to_collection
 # logger = logging.getLogger(__name__)
 import numpy as np
 
+
 class Trainer:
     def __init__(self, model, cfg):
         torch.cuda.empty_cache()
@@ -42,22 +43,23 @@ class Trainer:
         self.fabric.log_dict(self._current_train_return)
         # self.tokenizer = instantiate(cfg.tokenizer.load)
 
+
     def fit(self,
             train_loader: torch.utils.data.DataLoader,
             val_loader: torch.utils.data.DataLoader = None,
             ):
-        logging.info('fit started')
         train_loader = self.fabric.setup_dataloaders(train_loader)
         if val_loader is not None:
             val_loader = self.fabric.setup_dataloaders(val_loader)
 
         logging.info(f'started training on {self.fabric.device}')
+        self.save_model(f'{self.cfg.paths.saved_models}/{self.cfg.version}/{self.cfg.model.name}-no-training.ckpt')
 
         for epoch in range(self.cfg.model.params.epochs):
             logging.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
             self.train_loop(train_loader)
+            self.save_model(f'{self.cfg.paths.saved_models}/{self.cfg.version}/{self.cfg.model.name}-epoch-{epoch}.ckpt')
         logging.info('fit finished')
-
 
     def train_loop(self, train_loader):
 
@@ -90,7 +92,7 @@ class Trainer:
             correct = (predictions == labels).sum().item()
             accuracy = correct / self.cfg.data_loading.batch_size
             logs = {"loss": loss, "accuracy": accuracy}
-            self.fabric.log_dict(logs,step=batch_idx)
+            self.fabric.log_dict(logs, step=batch_idx)
             # loss.backward()
             self.fabric.backward(loss)
             self.optimizer.step()
@@ -106,7 +108,6 @@ class Trainer:
         all_acc = []
         all_loss = []
         with torch.no_grad():
-
             self.model.eval()
             loader_len = len(list(test_loader))
             loader = self.progbar_wrapper(
@@ -147,6 +148,7 @@ class Trainer:
     def save_model(self, path):
         state = {'model': self.model, 'optimizer': self.optimizer}
         self.fabric.save(path, state)
+        logging.info('saved model')
 
     def load_model(self, path):
         state = self.fabric.load(path)
@@ -155,7 +157,8 @@ class Trainer:
 
     @staticmethod
     def _format_iterable(
-        prog_bar, candidates: Optional[Union[torch.Tensor, Mapping[str, Union[torch.Tensor, float, int]]]], prefix: str
+            prog_bar, candidates: Optional[Union[torch.Tensor, Mapping[str, Union[torch.Tensor, float, int]]]],
+            prefix: str
     ):
         """Adds values as postfix string to progressbar.
         Args:

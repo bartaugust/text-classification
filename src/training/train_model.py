@@ -19,7 +19,6 @@ def train(cfg: DictConfig):
     model = load_model(cfg)
     trainer = Trainer(model,cfg)
     trainer.fit(data[0].dataloader)
-    trainer.save_model(cfg.paths.saved_models)
     return trainer
 
 

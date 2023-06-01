@@ -3,10 +3,11 @@ name:
   bert
 load:
   _target_:
-    transformers.BertModel.from_pretrained
+    transformers.BertForSequenceClassification.from_pretrained
   pretrained_model_name_or_path:
     bert-base-uncased
-
+  num_labels:
+    ${dataset.classes}
 
 params:
   loss:
@@ -18,7 +19,9 @@ params:
     lr:
       2e-5
   epochs:
-    1
+    5
 
+last:
+  logits
 trained_path:
   ${paths.main_path}/saved_models/21-47-39.ckpt
