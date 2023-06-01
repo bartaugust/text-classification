@@ -4,8 +4,8 @@ defaults:
   - data_loading
   - trainer: trainer
   - dataset: imdb
-  - model: bert
-  - tokenizer: bert-tokenizer
+  - model: distilbert
+  - tokenizer: distil-bert-tokenizer
   - _self_
 
 hydra:
@@ -18,4 +18,4 @@ hydra:
       tokenizer: glob(*)
 
 version:
-  1.0.1
+  1.1.0

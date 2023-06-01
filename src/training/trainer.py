@@ -13,8 +13,8 @@ import lightning as L
 from lightning.fabric.loggers import TensorBoardLogger
 from lightning_utilities import apply_to_collection
 
-logger = logging.getLogger(__name__)
-
+# logger = logging.getLogger(__name__)
+import numpy as np
 
 class Trainer:
     def __init__(self, model, cfg):
@@ -46,16 +46,17 @@ class Trainer:
             train_loader: torch.utils.data.DataLoader,
             val_loader: torch.utils.data.DataLoader = None,
             ):
-
+        logging.info('fit started')
         train_loader = self.fabric.setup_dataloaders(train_loader)
         if val_loader is not None:
             val_loader = self.fabric.setup_dataloaders(val_loader)
 
-        logger.info(f'started training on {self.fabric.device}')
+        logging.info(f'started training on {self.fabric.device}')
 
         for epoch in range(self.cfg.model.params.epochs):
-            logger.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
+            logging.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
             self.train_loop(train_loader)
+        logging.info('fit finished')
 
 
     def train_loop(self, train_loader):
@@ -100,10 +101,12 @@ class Trainer:
         self.fabric.call("on_train_epoch_end")
 
     def test(self, test_loader):
+        logging.info('test started')
         torch.cuda.empty_cache()
+        all_acc = []
+        all_loss = []
         with torch.no_grad():
-            all_acc = []
-            all_loss = []
+
             self.model.eval()
             loader_len = len(list(test_loader))
             loader = self.progbar_wrapper(
@@ -127,7 +130,8 @@ class Trainer:
                 all_acc.append(accuracy)
                 all_loss.append(loss)
                 loader.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
-            return all_acc, all_loss
+
+        return np.mean(all_acc), all_loss
 
     def progbar_wrapper(self, iterable: Iterable, total: int, **kwargs: Any):
         """Wraps the iterable with tqdm for global rank zero.

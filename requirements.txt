@@ -5,6 +5,7 @@ pytest
 
 torch
 transformers
+sentence-transformers
 lightning
 
 torchtext

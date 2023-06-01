@@ -1,0 +1,19 @@
+# @package tokenizer
+
+name:
+  bert-tokenizer
+load:
+  _target_:
+    transformers.DistilBertTokenizer.from_pretrained
+  pretrained_model_name_or_path:
+    distilbert-base-uncased
+
+params:
+  padding:
+    'max_length'
+  truncation:
+    True
+  max_length:
+    512
+  return_tensors:
+    pt

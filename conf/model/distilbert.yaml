@@ -1,11 +1,11 @@
 # @package model
 name:
-  bert
+  DistilBert
 load:
   _target_:
-    transformers.BertModel.from_pretrained
+    transformers.DistilBertModel.from_pretrained
   pretrained_model_name_or_path:
-    bert-base-uncased
+    distilbert-base-uncased
 
 
 params:
@@ -18,7 +18,7 @@ params:
     lr:
       2e-5
   epochs:
-    2
+    1
 
 trained_path:
   ${paths.main_path}/saved_models/21-47-39.ckpt
