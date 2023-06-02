@@ -23,5 +23,3 @@ params:
 
 last:
   logits
-trained_path:
-  ${paths.main_path}/saved_models/21-47-39.ckpt

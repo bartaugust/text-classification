@@ -14,8 +14,9 @@ hydra:
     MULTIRUN
   sweeper:
     params:
-      dataset: welfake, imdb
+      dataset: glob(*)
       experiments: glob(*)
+      epochs: range(0,${dataset.})
 
 version:
-  1.2.0
+  1.1.0

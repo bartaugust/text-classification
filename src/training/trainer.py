@@ -24,7 +24,8 @@ class Trainer:
 
         # self.cuda_available = torch.cuda.is_available()
         # self.device = torch.device('cuda' if self.cuda_available else 'cpu')
-        logger = TensorBoardLogger(root_dir="/home/trabor/PycharmProjects/PJN/logs/tensorboard")
+        logger = TensorBoardLogger(root_dir="/home/trabor/PycharmProjects/PJN/logs/tensorboard",
+                                   name=f'{cfg.model.name}/{cfg.dataset.name}')
         self.fabric = L.Fabric(**self.cfg.trainer.fabric, loggers=logger)
         self.fabric.launch()
         self.model = model
@@ -43,7 +44,6 @@ class Trainer:
         self.fabric.log_dict(self._current_train_return)
         # self.tokenizer = instantiate(cfg.tokenizer.load)
 
-
     def fit(self,
             train_loader: torch.utils.data.DataLoader,
             val_loader: torch.utils.data.DataLoader = None,
@@ -53,32 +53,27 @@ class Trainer:
             val_loader = self.fabric.setup_dataloaders(val_loader)
 
         logging.info(f'started training on {self.fabric.device}')
-        self.save_model(f'{self.cfg.paths.saved_models}/{self.cfg.version}/{self.cfg.model.name}-no-training.ckpt')
+        self.save_model(
+            f'{self.cfg.paths.saved_models}/{self.cfg.version}/model-{self.cfg.model.name}--dataset-{self.cfg.dataset.name}--epoch-none.ckpt')
 
         for epoch in range(self.cfg.model.params.epochs):
             logging.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
-            self.train_loop(train_loader)
-            self.val_loop(val_loader)
-            self.save_model(f'{self.cfg.paths.saved_models}/{self.cfg.version}/{self.cfg.model.name}-epoch-{epoch}.ckpt')
+            self.train_loop(train_loader, epoch)
+            self.val_loop(val_loader, epoch)
+            self.save_model(
+                f'{self.cfg.paths.saved_models}/{self.cfg.version}/model-{self.cfg.model.name}--dataset-{self.cfg.dataset.name}--epoch-{epoch}.ckpt')
         logging.info('fit finished')
 
-    def train_loop(self, train_loader):
+    def train_loop(self, train_loader, epoch):
 
         self.fabric.call("on_train_epoch_start")
 
         loader_len = len(list(train_loader))
         iterable = self.progbar_wrapper(
-            train_loader, total=loader_len, desc=f"Epoch {self.current_epoch}"
+            train_loader, total=loader_len, desc=f"Epoch {epoch}"
         )
         for batch_idx, batch in enumerate(iterable):
             self.fabric.call("on_train_batch_start", batch, batch_idx)
-
-            # tokenizer = instantiate(self.cfg.tokenizer.load)
-
-            # tokenized = tokenizer(batch[1], **self.cfg.tokenizer.params)
-
-            # input_ids = tokenized['input_ids'].to(self.fabric.device)
-            # attention_mask = tokenized['attention_mask'].to(self.fabric.device)
             input_ids = batch['input_ids'].to(self.fabric.device)
             attention_mask = batch['attention_mask'].to(self.fabric.device)
             labels = batch['label']
@@ -92,8 +87,8 @@ class Trainer:
 
             correct = (predictions == labels).sum().item()
             accuracy = correct / self.cfg.data_loading.batch_size
-            logs = {"loss": loss, "accuracy": accuracy}
-            self.fabric.log_dict(logs, step=batch_idx)
+            logs = {"Train loss": loss, "Train accuracy": accuracy}
+            self.fabric.log_dict(logs, step=epoch * loader_len + batch_idx)
             # loss.backward()
             self.fabric.backward(loss)
             self.optimizer.step()
@@ -102,8 +97,7 @@ class Trainer:
 
         self.fabric.call("on_train_epoch_end")
 
-    def val_loop(self, val_loader):
-
+    def val_loop(self, val_loader, epoch):
 
         self.fabric.call("on_validation_model_eval")  # calls `model.eval()`
         torch.set_grad_enabled(False)
@@ -111,7 +105,7 @@ class Trainer:
 
         loader_len = len(list(val_loader))
         iterable = self.progbar_wrapper(
-            val_loader, total=loader_len, desc=f"Epoch {self.current_epoch}"
+            val_loader, total=loader_len, desc=f"Epoch {epoch}"
         )
         for batch_idx, batch in enumerate(iterable):
             self.fabric.call("on_validation_batch_start", batch, batch_idx)
@@ -126,8 +120,8 @@ class Trainer:
 
             correct = (predictions == labels).sum().item()
             accuracy = correct / self.cfg.data_loading.batch_size
-            logs = {"loss": loss, "accuracy": accuracy, "type": "training"}
-            self.fabric.log_dict(logs, step=batch_idx)
+            logs = {"Validation Loss": loss, "Validation accuracy": accuracy}
+            self.fabric.log_dict(logs, step=epoch * loader_len + batch_idx)
             # avoid gradients in stored/accumulated values -> prevents potential OOM
 
             self.fabric.call("on_validation_batch_end", outputs, batch, batch_idx)
@@ -138,6 +132,7 @@ class Trainer:
 
         self.fabric.call("on_validation_model_train")
         torch.set_grad_enabled(True)
+
     def test(self, test_loader):
         logging.info('test started')
         torch.cuda.empty_cache()
@@ -165,7 +160,7 @@ class Trainer:
                 accuracy = correct / self.cfg.data_loading.batch_size
 
                 all_acc.append(accuracy)
-                all_loss.append(loss)
+                all_loss.append(loss.item())
                 loader.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
 
         return np.mean(all_acc), all_loss

@@ -15,15 +15,11 @@ torch.set_float32_matmul_precision('high')
 
 @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
 def evaluate(cfg: DictConfig):
-    train_data, _, test_data = load_data(cfg)
+    train_data, val_data, test_data = load_data(cfg)
     model = load_model(cfg)
     trainer = Trainer(model, cfg)
-    if cfg.model.trained_path:
-        trainer.load_model(cfg.model.trained_path)
-    else:
-        trainer.fit(train_data.dataloader)
-    accuracy, loss = trainer.test(test_data.dataloader)
-    print(accuracy)
+    trainer.load_model(cfg.model.trained_path)
+    trainer.test(test_data.dataloader)
 
 
 if __name__ == '__main__':
