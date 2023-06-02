@@ -11,33 +11,26 @@ from src.data_preparation.custom_data_loader import CustomDataLoader
 logger = logging.getLogger(__name__)
 
 
-def dataset_split(dataset, val_split):
-    # TODO: add  split
-    val_dataset = dataset
-    return dataset, val_dataset
+def split(dataset, split):
+    train_split, test_split = torch.utils.data.random_split(dataset, [split, 1 - split])
+    return train_split, test_split
 
-
-
-# @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
-# def load_all_datasets(cfg: DictConfig):
-#     for name, cfg_dataset in cfg.datasets.items():
-#         try:
-#             dataset = instantiate(cfg_dataset.load)
-#             logger.info(f'Loaded {name}')
-#         except Exception as e:
-#             logger.exception(f'Couldn\'t load {name}')
-#             raise e
 
 @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
 def load_data(cfg: DictConfig):
     try:
         # train_dataset, test_dataset = load_all_datasets(cfg)
-        train_loader = CustomDataLoader(cfg, 'train')
+
+        train_dataset = instantiate(cfg.dataset.load.train).shuffle()
+        test_dataset = instantiate(cfg.dataset.load.test).shuffle()
         if 'val' in cfg.dataset.load.keys():
-            val_loader = CustomDataLoader(cfg, 'val')
+            val_dataset = instantiate(cfg.dataset.load.val).shuffle()
         else:
-            val_loader = train_loader.split_val()
-        test_loader = CustomDataLoader(cfg, 'test')
+            train_dataset, val_dataset = split(train_dataset, cfg.dataset.val_split)
+
+        test_loader = CustomDataLoader(cfg, test_dataset)
+        val_loader = CustomDataLoader(cfg, val_dataset)
+        train_loader = CustomDataLoader(cfg, train_dataset)
 
         logger.info(f'Loaded dataset: {cfg.dataset.name}')
         return train_loader, val_loader, test_loader

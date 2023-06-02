@@ -1,0 +1,19 @@
+# @package tokenizer
+
+name:
+  bert-tokenizer
+load:
+  _target_:
+    transformers.AutoTokenizer.from_pretrained
+  pretrained_model_name_or_path:
+    sentence-transformers/all-MiniLM-L6-v2
+
+params:
+  padding:
+    'max_length'
+  truncation:
+    True
+  max_length:
+    512
+  return_tensors:
+    pt

@@ -1,13 +1,14 @@
 # @package model
 name:
-  bert
+  DistilBert
 load:
   _target_:
-    transformers.BertForSequenceClassification.from_pretrained
+    transformers.DistilBertForSequenceClassification.from_pretrained
   pretrained_model_name_or_path:
-    bert-base-uncased
+    distilbert-base-uncased
   num_labels:
     ${dataset.classes}
+
 
 params:
   loss:
@@ -20,6 +21,8 @@ params:
       2e-5
   epochs:
     5
-
 last:
   logits
+
+trained_path:
+  ${paths.main_path}/saved_models/21-47-39.ckpt

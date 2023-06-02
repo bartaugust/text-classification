@@ -14,4 +14,4 @@ hydra:
     handlers:
       file:
         filename:
-          ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}/${hydra.job.num}/${hydra.job.name}.log
+          ${paths.log_path}/${version}/${now:%Y-%m-%d}/${now:%H-%M-%S}/log.log

@@ -10,7 +10,7 @@ class CustomDataLoader:
     def __init__(self, cfg: DictConfig, dataset):
         self.cfg = cfg
 
-        self.dataset = instantiate(cfg.dataset.load[dataset]).shuffle()
+        self.dataset = dataset
         self.tokenizer = instantiate(cfg.tokenizer.load)
 
         # self.tokenized_dataset = self.tokenize()
@@ -33,7 +33,7 @@ class CustomDataLoader:
                 all_lists['input_ids'].append(tokenized['input_ids'])
                 # all_lists['token_type_ids'].append(tokenized['token_type_ids'])
 
-            all_lists['attention_mask'] = torch.stack(all_lists['attention_mask'] ).squeeze()
+            all_lists['attention_mask'] = torch.stack(all_lists['attention_mask']).squeeze()
             all_lists['input_ids'] = torch.stack(all_lists['input_ids']).squeeze()
             # all_lists['token_type_ids'] = torch.stack(all_lists['token_type_ids']).squeeze()
             all_lists['label'] = torch.Tensor(all_lists['label']).type(torch.LongTensor)
@@ -47,5 +47,4 @@ class CustomDataLoader:
                                            pin_memory=True,
                                            )
 
-    def split_val(self):
-        return self
+

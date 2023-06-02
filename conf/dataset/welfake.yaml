@@ -1,0 +1,21 @@
+# @package dataset
+name:
+  WelFake
+
+load:
+  train:
+    _target_: src.data_preparation.PandasDataset.PandasDataset
+    root: ${paths.datasets}/datasets/WelFake/WELFake_Dataset.csv
+    cut: [0, 57000]
+
+  test:
+    _target_: src.data_preparation.PandasDataset.PandasDataset
+    root: ${paths.datasets}/datasets/WelFake/WELFake_Dataset.csv
+    cut: [57000, null]
+
+
+val_split: 0.2
+
+classes:
+  2
+

@@ -1,13 +1,12 @@
 # @package model
 name:
-  bert
+  MiniLM
 load:
   _target_:
-    transformers.BertForSequenceClassification.from_pretrained
+    transformers.AutoModelForSequenceClassification.from_pretrained
   pretrained_model_name_or_path:
-    bert-base-uncased
-  num_labels:
-    ${dataset.classes}
+    sentence-transformers/all-MiniLM-L6-v2
+
 
 params:
   loss:
@@ -20,6 +19,7 @@ params:
       2e-5
   epochs:
     5
-
 last:
   logits
+trained_path:
+  ${paths.main_path}/saved_models/21-47-39.ckpt
