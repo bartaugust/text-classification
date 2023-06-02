@@ -58,6 +58,7 @@ class Trainer:
         for epoch in range(self.cfg.model.params.epochs):
             logging.info(f'epoch: {epoch + 1}/{self.cfg.model.params.epochs}')
             self.train_loop(train_loader)
+            self.val_loop(val_loader)
             self.save_model(f'{self.cfg.paths.saved_models}/{self.cfg.version}/{self.cfg.model.name}-epoch-{epoch}.ckpt')
         logging.info('fit finished')
 
@@ -97,11 +98,46 @@ class Trainer:
             self.fabric.backward(loss)
             self.optimizer.step()
 
-            self._format_iterable(iterable, self._current_train_return, "train")
-            # loader.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
+            iterable.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
 
         self.fabric.call("on_train_epoch_end")
 
+    def val_loop(self, val_loader):
+
+
+        self.fabric.call("on_validation_model_eval")  # calls `model.eval()`
+        torch.set_grad_enabled(False)
+        self.fabric.call("on_validation_epoch_start")
+
+        loader_len = len(list(val_loader))
+        iterable = self.progbar_wrapper(
+            val_loader, total=loader_len, desc=f"Epoch {self.current_epoch}"
+        )
+        for batch_idx, batch in enumerate(iterable):
+            self.fabric.call("on_validation_batch_start", batch, batch_idx)
+
+            input_ids = batch['input_ids'].to(self.fabric.device)
+            attention_mask = batch['attention_mask'].to(self.fabric.device)
+            labels = batch['label']
+
+            outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+            predictions = outputs.argmax(dim=1, keepdim=True).squeeze()
+            loss = self.criterion(outputs, labels)
+
+            correct = (predictions == labels).sum().item()
+            accuracy = correct / self.cfg.data_loading.batch_size
+            logs = {"loss": loss, "accuracy": accuracy, "type": "training"}
+            self.fabric.log_dict(logs, step=batch_idx)
+            # avoid gradients in stored/accumulated values -> prevents potential OOM
+
+            self.fabric.call("on_validation_batch_end", outputs, batch, batch_idx)
+
+            iterable.set_postfix(loss=loss.item(), accuracy=100. * accuracy)
+
+        self.fabric.call("on_validation_epoch_end")
+
+        self.fabric.call("on_validation_model_train")
+        torch.set_grad_enabled(True)
     def test(self, test_loader):
         logging.info('test started')
         torch.cuda.empty_cache()
@@ -154,26 +190,3 @@ class Trainer:
         state = self.fabric.load(path)
         self.model.load_state_dict(state['model'])
         self.optimizer.load_state_dict(state['optimizer'])
-
-    @staticmethod
-    def _format_iterable(
-            prog_bar, candidates: Optional[Union[torch.Tensor, Mapping[str, Union[torch.Tensor, float, int]]]],
-            prefix: str
-    ):
-        """Adds values as postfix string to progressbar.
-        Args:
-            prog_bar: a progressbar (on global rank zero) or an iterable (every other rank).
-            candidates: the values to add as postfix strings to the progressbar.
-            prefix: the prefix to add to each of these values.
-        """
-        if isinstance(prog_bar, tqdm) and candidates is not None:
-            postfix_str = ""
-            float_candidates = apply_to_collection(candidates, torch.Tensor, lambda x: x.item())
-            if isinstance(candidates, torch.Tensor):
-                postfix_str += f" {prefix}_loss: {float_candidates:.3f}"
-            elif isinstance(candidates, Mapping):
-                for k, v in float_candidates.items():
-                    postfix_str += f" {prefix}_{k}: {v:.3f}"
-
-            if postfix_str:
-                prog_bar.set_postfix_str(postfix_str)

@@ -8,17 +8,17 @@ import logging
 
 import torch
 
-
-
 logger = logging.getLogger(__name__)
 
 torch.set_float32_matmul_precision('high')
+
+
 @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
 def train(cfg: DictConfig):
-    data = load_data(cfg)
+    train_loader, val_loader, test_loader = load_data(cfg)
     model = load_model(cfg)
-    trainer = Trainer(model,cfg)
-    trainer.fit(data[0].dataloader)
+    trainer = Trainer(model, cfg)
+    trainer.fit(train_loader.dataloader, val_loader.dataloader)
     return trainer
 
 
