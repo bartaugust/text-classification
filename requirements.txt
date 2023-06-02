@@ -12,3 +12,5 @@ torchtext
 portalocker
 
 tensorboardX
+
+pandas

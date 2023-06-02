@@ -3,7 +3,7 @@ defaults:
   - logging
   - data_loading
   - trainer: trainer
-  - dataset: imdb
+  - dataset: welfake
   - experiments: bert
 #  - model: minilm
 #  - tokenizer: minilm-tokenizer
@@ -11,7 +11,7 @@ defaults:
 
 hydra:
   mode:
-    MULTIRUN
+    RUN
   sweeper:
     params:
 #      dataset: glob(*)
