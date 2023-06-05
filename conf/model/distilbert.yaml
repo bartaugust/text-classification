@@ -25,4 +25,4 @@ last:
   logits
 
 trained_path:
-  ${paths.main_path}/saved_models/21-47-39.ckpt
+  ${paths.main_path}/saved_models/${version}/model-${model.name}--dataset-${dataset.name}--epoch-${epoch}.ckpt

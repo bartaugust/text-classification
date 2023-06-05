@@ -6,6 +6,9 @@ load:
     transformers.AutoModelForSequenceClassification.from_pretrained
   pretrained_model_name_or_path:
     sentence-transformers/all-MiniLM-L6-v2
+  num_labels:
+    ${dataset.classes}
+
 
 
 params:
@@ -22,4 +25,4 @@ params:
 last:
   logits
 trained_path:
-  ${paths.main_path}/saved_models/21-47-39.ckpt
+  ${paths.main_path}/saved_models/${version}/model-${model.name}--dataset-${dataset.name}--epoch-${epoch}.ckpt

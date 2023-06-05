@@ -14,3 +14,5 @@ portalocker
 tensorboardX
 
 pandas
+seaborn
+matplotlib

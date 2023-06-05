@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 torch.set_float32_matmul_precision('high')
 
 
-@hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
+@hydra.main(version_base='1.3', config_path='../../conf', config_name='tests')
 def evaluate(cfg: DictConfig):
     train_data, val_data, test_data = load_data(cfg)
     model = load_model(cfg)
-    trainer = Trainer(model, cfg)
+    trainer = Trainer(model, cfg, version=1)
     trainer.load_model(cfg.model.trained_path)
     trainer.test(test_data.dataloader)
 

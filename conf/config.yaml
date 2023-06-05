@@ -3,8 +3,8 @@ defaults:
   - logging
   - data_loading
   - trainer: trainer
-  - dataset: welfake
-  - experiments: bert
+  - dataset: hatespeech
+  - experiments: minilm
 #  - model: minilm
 #  - tokenizer: minilm-tokenizer
   - _self_
@@ -14,8 +14,8 @@ hydra:
     MULTIRUN
   sweeper:
     params:
-      dataset: welfake, imdb
-      experiments: glob(*)
+      dataset: hatespeech
+      experiments: distilbert, minilm
 
 version:
   1.2.0

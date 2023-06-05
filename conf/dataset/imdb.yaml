@@ -12,9 +12,8 @@ load:
     root: ${paths.datasets}
     split: test
 
-split:
-  _target_: dataset_split
-  val_split: 0.2
+
+val_split: 0.8
 
 classes:
   2
