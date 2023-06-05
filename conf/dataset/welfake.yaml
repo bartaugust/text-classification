@@ -7,15 +7,26 @@ load:
     _target_: src.data_preparation.PandasDataset.PandasDataset
     root: ${paths.datasets}/datasets/WelFake/WELFake_Dataset.csv
     cut: [0, 57000]
+    names:
+      label:
+        label
+      text:
+        text
+    add_one: 1
 
   test:
     _target_: src.data_preparation.PandasDataset.PandasDataset
     root: ${paths.datasets}/datasets/WelFake/WELFake_Dataset.csv
     cut: [57000, null]
+    names:
+      label:
+        label
+      text:
+        text
+    add_one: 1
 
 
-val_split: 0.2
+val_split: 0.8
 
 classes:
   2
-
