@@ -173,7 +173,7 @@ class Trainer:
         mean_acc = np.mean(all_acc)
         mean_loss = np.mean(all_loss)
 
-        confmat = ConfusionMatrix(task="multiclass", num_classes=3).to(self.fabric.device)
+        confmat = ConfusionMatrix(task="binary", num_classes=2).to(self.fabric.device)
         cm = confmat(torch.cat(all_pred), torch.cat(all_labels))
         cm = cm / cm.sum(axis=1)
         fig = plt.figure()

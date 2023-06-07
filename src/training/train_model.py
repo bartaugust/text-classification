@@ -19,6 +19,7 @@ def train(cfg: DictConfig):
     model = load_model(cfg)
     trainer = Trainer(model, cfg)
     trainer.fit(train_loader.dataloader, val_loader.dataloader)
+    torch.cuda.empty_cache()
     return trainer
 
 

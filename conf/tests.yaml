@@ -4,22 +4,22 @@ defaults:
   - data_loading
   - trainer: trainer
   - dataset: hatespeech
-  - experiments: bert
+  - experiments: minilm
 #  - model: minilm
 #  - tokenizer: minilm-tokenizer
 
   - _self_
 
-epoch: 5
+epoch: 0
 data_loading.batch_size:
     128
 hydra:
   mode:
-    RUN
+    MULTIRUN
   sweeper:
     params:
-#      dataset: glob(*,exclude=[yahoo,imdb])
-#      experiments: glob(*)
+      dataset: welfake, imdb
+      experiments: glob(*)
       epoch: 0,1,2,3,4,5
 
 version:

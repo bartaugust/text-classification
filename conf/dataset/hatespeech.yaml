@@ -29,5 +29,5 @@ load:
 val_split: 0.8
 
 classes:
-  4
+  3
 
