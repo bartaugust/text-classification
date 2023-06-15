@@ -12,12 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 def split(dataset, split):
-    def tmp(self):
-        return len(list(self))
 
-    dataset.__len__= tmp
     train_split, test_split = torch.utils.data.random_split(dataset, [split, 1 - split])
-    return train_split, test_split
+    return dataset, dataset
 
 @hydra.main(version_base='1.3', config_path='../../conf', config_name='config')
 def load_data(cfg: DictConfig):
@@ -29,7 +26,7 @@ def load_data(cfg: DictConfig):
         if 'val' in cfg.dataset.load.keys():
             val_dataset = instantiate(cfg.dataset.load.val).shuffle()
         else:
-            train_dataset, val_dataset = split(train_dataset, cfg.dataset.val_split)
+            test_dataset, val_dataset = split(test_dataset, cfg.dataset.val_split)
 
         test_loader = CustomDataLoader(cfg, test_dataset)
         val_loader = CustomDataLoader(cfg, val_dataset)
